@@ -1,6 +1,8 @@
+#include "Adafruit_TinyUSB.h"
 #include <stdio.h>
 #include "boards/pico.h"
 #include "hardware/gpio.h"
+#include "hardware/resets.h"
 #include "hid_desc.hpp"
 
 #define LED_PIN PICO_DEFAULT_LED_PIN
@@ -10,6 +12,15 @@
 #define DEBOUNCE_MS 8ul
 #define PICO_GPIO_MASK 0x1C7FFFFF
 #define PICO_GPIO_COUNT 26
+
+#define LED_ENABLED // Comment to disable the LED
+#define WAKE_ENABLED // Comment to disable waking from sleep
+
+#define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
+#define REBOOT AIRCR_Register = 0x5FA0004;
+
+
+Adafruit_USBD_HID usb_hid(desc_hid_report, sizeof(desc_hid_report), HID_ITF_PROTOCOL_NONE, 1, false);
 
 // Button to GPIO array
 uint16_t buttons[PICO_GPIO_COUNT] =
@@ -25,9 +36,8 @@ uint16_t buttons[PICO_GPIO_COUNT] =
 	1,26,22            // buttons 7,8,9
 };
 
-
-my_report    gamepadA;
-my_report    gamepadB;
+pd_report gamepadA;
+pd_report gamepadB;
 
 uint32_t gpio_now = 0;
 uint32_t gpio_old = 0;
@@ -37,6 +47,8 @@ uint32_t states[PICO_GPIO_COUNT];
 
 uint32_t time_now = 0;
 
+bool sendA = false;
+bool sendB = false;
 
 void init()
 {
@@ -62,19 +74,42 @@ void init()
 	}
 }
 
-bool sendA = false;
-bool sendB = false;
-
 int main()
 {
 	init();
-	if (!usb_hid.ready()) return 0;
+	if (!usb_hid.ready())
+	{
+		// Something went wrong, rebooting pico
+		sleep_ms(1000);
+		REBOOT;
+		return 0;
+	}
 
 	while (true)
 	{
 		// Get all GPIO and invers since we're using pull-ups
 		gpio_now = ~gpio_get_all();
+		gpio_now &= PICO_GPIO_MASK;
 		time_now = time_us_64() / 1000;
+
+#ifdef LED_ENABLED
+		if (gpio_now) LED_ON;
+		else LED_OFF;
+#endif
+
+#ifdef WAKE_ENABLED
+		if (TinyUSBDevice.suspended() && gpio_now)
+		{
+			// Wake up the host if it's in suspended state
+			// and REMOTE_WAKEUP feature is enabled by the host
+			TinyUSBDevice.remoteWakeup();
+
+			// Reboot Pico while host is resuming from sleep
+			// to prevent Pico locking up
+			REBOOT;
+			return 0;
+		}
+#endif
 
 		for (int i = 0; i < PICO_GPIO_COUNT; i++)
 		{
@@ -101,10 +136,10 @@ int main()
 			gamepadA.buttons = 0ul
 			| (states[4]  << 0)
 			| (states[5]  << 1)
-			| (states[6] << 2)
-			| (states[7] << 3)
-			| (states[8] << 4)
-			| (states[9] << 5)
+			| (states[6]  << 2)
+			| (states[7]  << 3)
+			| (states[8]  << 4)
+			| (states[9]  << 5)
 			| (states[10] << 6)
 			| (states[11] << 7)
 			| (states[12] << 8);
