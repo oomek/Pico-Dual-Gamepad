@@ -1,3 +1,6 @@
+#include "Adafruit_TinyUSB.h"
+#include <stdint.h>
+
 #define PD_GAMEPAD(...) \
 	HID_USAGE_PAGE   (HID_USAGE_PAGE_DESKTOP                ),\
 	HID_USAGE        (HID_USAGE_DESKTOP_GAMEPAD             ),\
@@ -41,5 +44,3 @@ typedef struct TU_ATTR_PACKED
 	int8_t  y;         ///< Delta y  movement of left analog-stick
 	uint32_t buttons;  ///< Buttons mask for currently pressed buttons
 }pd_report;
-
-
