@@ -9,8 +9,10 @@
 	HID_USAGE_PAGE   (HID_USAGE_PAGE_DESKTOP                ),\
 	HID_USAGE        (HID_USAGE_DESKTOP_X                   ),\
 	HID_USAGE        (HID_USAGE_DESKTOP_Y                   ),\
-	HID_LOGICAL_MIN  (0x81                                  ),\
-	HID_LOGICAL_MAX  (0x7f                                  ),\
+	HID_PHYSICAL_MIN (0xFF                                  ),\
+	HID_PHYSICAL_MAX (0x01                                  ),\
+	HID_LOGICAL_MIN  (0xFF                                  ),\
+	HID_LOGICAL_MAX  (0x01                                  ),\
 	HID_REPORT_COUNT (2                                     ),\
 	HID_REPORT_SIZE  (8                                     ),\
 	HID_INPUT        (HID_DATA | HID_VARIABLE | HID_ABSOLUTE),\

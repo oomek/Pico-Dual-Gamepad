@@ -144,8 +144,8 @@ void loop()
 
     if (sendA)
     {
-        gamepadA.x = states[2] * -127 + states[3] * 127;
-        gamepadA.y = states[0] * -127 + states[1] * 127;
+        gamepadA.x = states[3] - states[2];
+        gamepadA.y = states[1] - states[0];
 
         gamepadA.buttons = 0ul
         | (states[4]  << 0)
@@ -165,8 +165,8 @@ void loop()
 
     if (sendB)
     {
-        gamepadB.x = states[15] * -127 + states[16] * 127;
-        gamepadB.y = states[13] * -127 + states[14] * 127;
+        gamepadB.x = states[16] - states[15];
+        gamepadB.y = states[14] - states[13];
 
         gamepadB.buttons = 0ul
         | (states[17] << 0)
